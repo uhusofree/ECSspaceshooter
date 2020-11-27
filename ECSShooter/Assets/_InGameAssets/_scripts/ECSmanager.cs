@@ -19,7 +19,9 @@ public class ECSmanager : MonoBehaviour
     [Header("Enemies")]
     public GameObject enemyCraftPrefab;
     [SerializeField] private int enemyCraftCount = 5;
-    [SerializeField] private float offset = 5f;
+    [SerializeField] private float offset = 5.0f;
+    [SerializeField] private float intervalTilSpawn = 20.0f;
+    private float spawnTimer = 0.0f;
 
     private Entity enemy;
     private Vector2 bounds;
@@ -82,6 +84,7 @@ public class ECSmanager : MonoBehaviour
     void Update()
     {
         ShootLaser();
+        SpawnWaver();
     }
 
     private void ShootLaser()
@@ -111,6 +114,16 @@ public class ECSmanager : MonoBehaviour
             x += 75.0f;
         }
 
+    }
+
+    private void SpawnWaver()
+    {
+        spawnTimer += Time.deltaTime;
+        if (spawnTimer >= intervalTilSpawn)
+        {
+            EnemyWaves();
+            spawnTimer = 0.0f;
+        }
     }
 
     private void OnDestroy()
