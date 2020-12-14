@@ -1,10 +1,13 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Unity.Mathematics;
+using Unity.Collections;
 
 public class GameManagers : MonoBehaviour
 {
     private Transform player;
+    public float3[] launcherPositions;
     //Attempt at a singleton
     #region SINGLETON
     public static GameManagers _instance;
@@ -38,4 +41,5 @@ public class GameManagers : MonoBehaviour
 
         return (instance.player != null) ? GameManagers.instance.player.position : Vector3.zero;
     }
+
 }

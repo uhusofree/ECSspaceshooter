@@ -3,13 +3,12 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 using Unity.Collections;
-
-
+using System.Collections.Generic;
 
 public class ECSmanager : MonoBehaviour
 {
 
-    
+
 
     public static EntityManager manager;
     [Header("Asteroids")]
@@ -22,6 +21,8 @@ public class ECSmanager : MonoBehaviour
     [SerializeField] private float offset = 5.0f;
     [SerializeField] private float intervalTilSpawn = 20.0f;
     private float spawnTimer = 0.0f;
+
+    
 
     private Entity enemy;
     private Vector2 bounds;
@@ -52,9 +53,9 @@ public class ECSmanager : MonoBehaviour
             Entity instance2 = manager.Instantiate(asteroid2);
 
 
-            float x = UnityEngine.Random.Range(-360, 360);
-            float y = UnityEngine.Random.Range(-360, 360);
-            float z = UnityEngine.Random.Range(-360, 360);
+            float x = UnityEngine.Random.Range(-720, 720);
+            float y = UnityEngine.Random.Range(-720, 720);
+            float z = UnityEngine.Random.Range(-720, 720);
 
             float3 pos = new float3(x, y, z);
 
@@ -71,12 +72,23 @@ public class ECSmanager : MonoBehaviour
         bounds = Camera.main.ScreenToWorldPoint(new Vector3(Screen.width, Screen.height, Camera.main.transform.position.z));
         enemy = GameObjectConversionUtility.ConvertGameObjectHierarchy(enemyCraftPrefab, settings);
 
+        List<GameObject> enemyLaserOrigin = new List<GameObject>();
+        Transform enemyShipPos = enemyCraftPrefab.transform;
+        foreach (Transform launcher in enemyShipPos)
+        {
+            if (launcher.tag == "EnemyLaserOrgin")
+            {
+                enemyLaserOrigin.Add(launcher.gameObject);
+            }
+        }
+
+        GameManagers.instance.launcherPositions = new float3[enemyLaserOrigin.Count];
+        for (int i = 0; i < enemyLaserOrigin.Count; i++)
+        {
+            GameManagers.instance.launcherPositions[i] = enemyLaserOrigin[i].transform.TransformPoint(enemyLaserOrigin[i].transform.position);
+        }
+
         EnemyWaves();
-
-        //manager.Instantiate(enemy);
-        //manager.AddComponentData(enemy, new Translation { Value = new float3(enemyXpos, enemyYpos, enemyZpos - 5) });
-
-
     }
 
 
@@ -85,6 +97,7 @@ public class ECSmanager : MonoBehaviour
     {
         ShootLaser();
         SpawnWaver();
+
     }
 
     private void ShootLaser()
@@ -104,12 +117,14 @@ public class ECSmanager : MonoBehaviour
         float enemyZpos = laserOrigin.transform.position.z + offset;
         float x = bounds.x / 2;
 
+    
         for (int i = 0; i < enemyArray.Length; i++)
         {
-            float3 randomizePos = new float3(x, 0, enemyZpos);
+            float3 enemyPos = new float3(x, 0, enemyZpos);
 
             enemyArray[i] = manager.Instantiate(enemy);
-            manager.SetComponentData(enemyArray[i], new Translation { Value = randomizePos });
+            manager.SetComponentData(enemyArray[i], new Translation { Value = enemyPos });
+            manager.SetComponentData(enemyArray[i], new EnemyData { canFire = false, enemyLaser = laser });
 
             x += 75.0f;
         }
@@ -119,6 +134,7 @@ public class ECSmanager : MonoBehaviour
     private void SpawnWaver()
     {
         spawnTimer += Time.deltaTime;
+
         if (spawnTimer >= intervalTilSpawn)
         {
             EnemyWaves();
